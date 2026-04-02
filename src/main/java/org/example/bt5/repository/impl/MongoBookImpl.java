@@ -71,4 +71,9 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
 
         return mongoDBRepository.findAll(finalPageable);
     }
+
+    @Override
+    public void saveAll(List<BookDocument> books) {
+        mongoDBRepository.saveAll(books);
+    }
 }

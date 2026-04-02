@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Repository("Influx")
 @RequiredArgsConstructor
-public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
+public class InfluxBookImpl implements BookRepository<BookMetric, String> {
     public final InfluxDBClient influxDBClient;
 
     @Value("${influx.url}")
@@ -48,7 +48,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
                 Object idObj = record.getValueByKey("id");
                 if (idObj != null) {
                     try {
-                        book.setId((Long) idObj);
+                        book.setId(idObj.toString());
                     } catch (NumberFormatException ignore) { }
                 }
 
@@ -84,7 +84,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
     @Override
     public void saveBook(BookMetric book) {
         if (book.getId() == null) {
-            Long ID = UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
+            String ID = String.valueOf(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
             book.setId(ID);
         }
 
@@ -119,6 +119,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
         return new PageImpl<>(books, PageRequest.of(page, size), books.size());
     }
 
+    @Override
     public void saveAll(List<BookMetric> books) {
         if (books == null || books.isEmpty()) return;
 
@@ -126,7 +127,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
         for (BookMetric book : books) {
 
             if (book.getId() == null) {
-                book.setId(Math.abs(UUID.randomUUID().getMostSignificantBits()));
+                book.setId(String.valueOf(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE));
             }
 
             points.add(writeData(book));
@@ -153,7 +154,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
 
 
     @Override
-    public void updateBook(Long id, BookMetric book) {
+    public void updateBook(String id, BookMetric book) {
 
         String flux = String.format(
                 "from(bucket: \"%s\") " +
@@ -161,7 +162,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
                         "|> filter(fn: (r) => r._measurement == \"%s\") " +
                         "|> filter(fn: (r) => r.id == \"%s\") " +
                         "|> limit(n: 1)",
-                bucket, MEASUREMENT, id.toString()
+                bucket, MEASUREMENT, id
         );
 
         List<FluxTable> tables = influxDBClient.getQueryApi().query(flux);
@@ -172,14 +173,14 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
             return;
         }
 
-        deleteBooks(List.of(Long.valueOf(id.toString())));
+        deleteBooks(List.of(id));
         book.setId(id);
         saveBook(book);
         System.out.println("Cập nhật thành công bản ghi InfluxDB");
     }
 
     @Override
-    public void deleteBooks(List<Long> ids) {
+    public void deleteBooks(List<String> ids) {
         if (ids == null || ids.isEmpty()) return;
 
         OffsetDateTime start = OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
@@ -206,6 +207,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, Long> {
                         "|> range(start: 0) " +
                         "|> filter(fn: (r) => r._measurement == \"%s\") " +
                         "|> filter(fn: (r) => r.author == \"%s\") " +
+                        "|> filter(fn: (r) => r._field == \"id\") " +
                         "|> filter(fn: (r) => r._field == \"title\") " +
                         "|> group() " +
                         "|> count()",

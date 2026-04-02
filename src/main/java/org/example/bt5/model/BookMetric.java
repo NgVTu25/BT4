@@ -18,13 +18,15 @@ import java.time.Instant;
 @Measurement(name = "Book")
 public class BookMetric {
     @Id
-    private Long id;
+    private String id;
     @Column(tag = true)
     private String author;
     @Column(tag = true)
     private String category;
     @Column
     private String title;
+    @Transient
+    private String content;
     @Column(timestamp = true)
     private Instant createDate = Instant.now();
     @Column

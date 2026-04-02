@@ -42,7 +42,9 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         List<BookCache> allBooks = new ArrayList<>();
         redisRepository.findAll().forEach(allBooks::add);
 
-        List<BookCache> filteredBooks = allBooks.stream().filter(b -> (title == null || title.isBlank() || (b.getTitle() != null && b.getTitle().toLowerCase().contains(title.toLowerCase())))).filter(b -> (author == null || author.isBlank() || (b.getAuthor() != null && b.getAuthor().toLowerCase().contains(author.toLowerCase())))).collect(Collectors.toList());
+        List<BookCache> filteredBooks = allBooks.stream().filter(b -> (title == null || title.isBlank()
+                || (b.getTitle() != null && b.getTitle().toLowerCase().contains(title.toLowerCase())))).filter(b
+                -> (author == null || author.isBlank() || (b.getAuthor() != null && b.getAuthor().toLowerCase().contains(author.toLowerCase())))).collect(Collectors.toList());
 
 
         if (page >= filteredBooks.size() || page < 0) {
@@ -97,5 +99,19 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         }
 
         return new PageImpl<>(books.subList(page, Math.min(page + size, books.size())), PageRequest.of(page, size), books.size());
+    }
+
+    @Override
+    public void saveAll(List<BookCache> books) {
+        if (books == null || books.isEmpty()) return;
+
+        for (BookCache book : books) {
+            if (book.getId() == null) {
+                book.setId(UUID.randomUUID().toString());
+            }
+            book.setContent(null);
+        }
+
+        redisRepository.saveAll(books);
     }
 }

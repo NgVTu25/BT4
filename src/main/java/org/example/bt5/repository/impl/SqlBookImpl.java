@@ -88,4 +88,9 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
         return sqlRepository.findAll(actualPageable);
     }
 
+    @Override
+    public void saveAll(List<BookSQL> books) {
+        sqlRepository.saveAll(books);
+    }
+
 }

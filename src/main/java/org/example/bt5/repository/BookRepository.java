@@ -18,4 +18,6 @@ public interface BookRepository<T, ID> {
     Map<String, Object> statisticByAuthor(String author);
 
     Page<T> findAllPaging(Pageable pageable);
+
+    void saveAll(List<T> books);
 }
