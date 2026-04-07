@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
 
     @Override
     public void saveBook(BookDocument book) {
+        book.setCreateDate(Instant.now());
         mongoDBRepository.save(book);
         System.out.println("Lưu thành công vào Mongo với ID: " + book.getId());
     }
@@ -44,11 +46,11 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
     public void updateBook(String id, BookDocument book) {
         BookDocument Ebook = mongoDBRepository.findById(id).orElse(null);
         if (Ebook != null) {
-            Ebook.setTitle(book.getTitle());
-            Ebook.setAuthor(book.getAuthor());
-            Ebook.setContent(book.getContent());
-            Ebook.setCategory(book.getCategory());
-            Ebook.setViewCount(book.getViewCount());
+            Ebook.setTitle(book.getTitle() != null ? book.getTitle() : Ebook.getTitle());
+            Ebook.setAuthor(book.getAuthor() != null ? book.getAuthor() : Ebook.getAuthor());
+            Ebook.setContent(book.getContent() != null ? book.getContent() : Ebook.getContent());
+            Ebook.setCategory(book.getCategory() != null ? book.getCategory() : Ebook.getCategory());
+            Ebook.setViewCount(book.getViewCount() != null ? book.getViewCount() : Ebook.getViewCount());
             mongoDBRepository.save(Ebook);
         }
     }

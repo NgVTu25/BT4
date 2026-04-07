@@ -1,8 +1,8 @@
 package org.example.bt5;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.bt5.model.BookCache;
 import org.example.bt5.model.BookDocument;
-import org.example.bt5.model.BookMetric;
 import org.example.bt5.model.BookSQL;
 import org.example.bt5.repository.BookRepository;
 import org.junit.jupiter.api.Test;
@@ -27,8 +27,8 @@ public class DatabasePerformanceTest {
 
     // ================= MAIN LOGIC =================
     public void generateAndInsert(String dbType) {
-        int totalRecords = 350_000;
-        int batchSize = 100;
+        int totalRecords = 1_000_000;
+        int batchSize = 1000;
 
         String[] categories = {"Hành động", "Tình cảm", "Khoa học", "Lịch sử", "Kinh dị", "Trinh thám", "Kỹ năng", "Kinh tế"};
         String[] authors = {"Nguyen Van A", "Tran Thi B", "Le Van C", "Tolkien", "J.K. Rowling", "George Orwell", "Haruki Murakami"};
@@ -112,23 +112,22 @@ public class DatabasePerformanceTest {
     private Object convertToCorrectType(Object bookBody, String dbType) {
         String type = dbType.toLowerCase();
 
-        try {
+//        try {
 //            if (type.contains("mysql") || type.contains("sql")) {
 //                return objectMapper.convertValue(bookBody, BookSQL.class);
 //            } else if (type.contains("mongo")) {
 //                return objectMapper.convertValue(bookBody, BookDocument.class);
-//            } else if (type.contains("redis")) {
-//                return objectMapper.convertValue(bookBody, BookCache.class);
 //            } else
-
-            if (type.contains("influx")) {
-                return objectMapper.convertValue(bookBody, BookMetric.class);
-            } else {
-                throw new IllegalArgumentException("Database type không được hỗ trợ: " + dbType);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi convert: " + e.getMessage());
-        }
+//                if (type.contains("redis")) {
+        return objectMapper.convertValue(bookBody, BookCache.class);
+//            } else if (type.contains("influx")) {
+//                return objectMapper.convertValue(bookBody, BookMetric.class);
+//            } else {
+//                throw new IllegalArgumentException("Database type không được hỗ trợ: " + dbType);
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException("Lỗi convert: " + e.getMessage());
+//        }
     }
 
     // ================= GET REPO =================

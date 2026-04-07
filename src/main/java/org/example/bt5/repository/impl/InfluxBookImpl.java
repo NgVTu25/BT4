@@ -87,7 +87,8 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
     @Override
     public void saveBook(BookMetric book) {
         if (book.getId() == null) {
-            String ID = String.valueOf(UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE);
+            String ID = UUID.randomUUID().toString();
+            book.setCreateDate(Instant.now());
             book.setId(ID);
         }
 
@@ -262,10 +263,6 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
                 "from(bucket: \"%s\") " +
                         "|> range(start: 0) " +
                         "|> filter(fn: (r) => r._measurement == \"%s\") " +
-                        "|> filter(fn: (r) => " +
-                        "r._field == \"author\" or " +
-                        "r._field == \"category\" or " +
-                        "r._field == \"title\") " +
                         "|> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") " +
                         "|> keep(columns: [\"_time\", \"id\", \"author\", \"category\", \"title\"]) " +
                         "|> group() " +

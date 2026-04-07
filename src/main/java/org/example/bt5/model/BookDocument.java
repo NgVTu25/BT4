@@ -21,7 +21,6 @@ import java.util.UUID;
 @CompoundIndex(name = "auth_cat_idx", def = "{'author': 1, 'category': -1}")
 public class BookDocument {
     @Id
-    @Builder.Default
     private String id = UUID.randomUUID().toString();
 
     private String author;

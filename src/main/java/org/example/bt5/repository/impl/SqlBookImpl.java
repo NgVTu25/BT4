@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
 
     @Override
     public void saveBook(BookSQL book) {
+        book.setCreateDate(Instant.now());
         sqlRepository.save(book);
         System.out.println(book.getId());
     }

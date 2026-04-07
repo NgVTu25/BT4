@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -88,6 +89,7 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         if (book.getId() == null) {
             book.setId(UUID.randomUUID().toString());
         }
+        book.setCreateDate(Instant.now());
         book.setContent(null);
 
         String key = bookKey(book.getId());
