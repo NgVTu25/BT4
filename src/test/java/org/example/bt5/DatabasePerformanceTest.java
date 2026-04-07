@@ -29,7 +29,7 @@ public class DatabasePerformanceTest {
 
     // ================= MAIN LOGIC =================
     public void generateAndInsert(String dbType) {
-        int totalRecords = 500_000;
+        int totalRecords = 1_000_000;
         int batchSize = 5_000;
 
         String[] categories = {"Hành động", "Tình cảm", "Khoa học", "Lịch sử", "Kinh dị"};
@@ -122,7 +122,7 @@ public class DatabasePerformanceTest {
 //            } else if (type.contains("redis")) {
 //                return objectMapper.convertValue(bookBody, BookCache.class);
 //            } else
-//
+
                 if (type.contains("influx")) {
                 return objectMapper.convertValue(bookBody, BookMetric.class);
             } else {

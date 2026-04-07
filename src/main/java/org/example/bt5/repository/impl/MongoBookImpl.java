@@ -63,7 +63,13 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
 
     @Override
     public Map<String, Object> statisticByAuthor(String author) {
-        return mongoDBRepository.statisticByAuthor(author);
+        List<Map<String, Object>> results = mongoDBRepository.statisticByAuthor(author);
+
+        if (results != null && !results.isEmpty()) {
+            return results.getFirst();
+        }
+
+        return Map.of();
     }
 
     @Override

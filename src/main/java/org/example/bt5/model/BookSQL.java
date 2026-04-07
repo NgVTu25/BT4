@@ -1,14 +1,11 @@
 package org.example.bt5.model;
 
 import com.influxdb.annotations.Column;
-import com.influxdb.annotations.Measurement;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.redis.core.RedisHash;
 
 import java.time.Instant;
 
@@ -17,7 +14,12 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "book")
+@Table(name = "book", indexes = {
+        @Index(name = "idx_title", columnList = "title"),
+        @Index(name = "idx_id", columnList = "id"),
+        @Index(name = "idx_author", columnList = "author")
+})
+
 public class BookSQL {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

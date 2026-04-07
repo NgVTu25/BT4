@@ -7,11 +7,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.List;
 import java.util.Map;
 
 public interface MongoDBRepository extends MongoRepository<BookDocument, String> {
     Page<BookDocument> findByTitleContainingIgnoreCaseAndAuthorContainingIgnoreCaseAndContentContainingIgnoreCase(String title,
-             String author, String content, Pageable pageable);
+                                                                                                                  String author, String content, Pageable pageable);
 
     @Aggregation(pipeline = {
             "{ '$match': { 'author': ?0 } }",
@@ -23,6 +24,6 @@ public interface MongoDBRepository extends MongoRepository<BookDocument, String>
                     "    'maxViews': { '$max': '$viewCount' } " +
                     "} }"
     })
-    Map<String, Object> statisticByAuthor(String author);
+    List<Map<String, Object>> statisticByAuthor(String author);
 
 }

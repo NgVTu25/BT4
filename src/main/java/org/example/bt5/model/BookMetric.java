@@ -2,7 +2,9 @@ package org.example.bt5.model;
 
 import com.influxdb.annotations.Column;
 import com.influxdb.annotations.Measurement;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

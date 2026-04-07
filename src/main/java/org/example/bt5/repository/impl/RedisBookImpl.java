@@ -27,6 +27,14 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         return "book:" + id;
     }
 
+    private String authorBooksKey(String author) {
+        return "idx:author:" + normalize(author).replace(" ", "_");
+    }
+
+    private String titleBooksKey(String title) {
+        return "idx:title:" + normalize(title);
+    }
+
     private String authorStatsKey(String author) {
         return "stats:author:" + normalize(author);
     }
@@ -40,16 +48,16 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         String id = book.getId();
 
         if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
-            String authorKey = "idx:author:" + normalize(book.getAuthor()).replace(" ", "_");
-            ops.opsForSet().add(authorKey, id);
-
+            ops.opsForSet().add(authorBooksKey(book.getAuthor()), id);
             ops.opsForHash().increment(authorStatsKey(book.getAuthor()), "total", 1);
         }
 
         if (book.getTitle() != null && !book.getTitle().isBlank()) {
             String[] words = normalize(book.getTitle()).split("\\s+");
             for (String word : words) {
-                ops.opsForSet().add("idx:title:" + word, id);
+                if (!word.isBlank()) {
+                    ops.opsForSet().add(titleBooksKey(word), id);
+                }
             }
         }
     }
@@ -58,19 +66,16 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         if (book == null || book.getId() == null) return;
         String id = book.getId();
 
-        if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
-            String authorKey = "idx:author:" + normalize(book.getAuthor()).replace(" ", "_");
-            stringRedisTemplate.opsForSet().remove(authorKey, id);
-            if (book.getCategory() != null && !book.getCategory().isBlank()) {
-                stringRedisTemplate.opsForHash().increment(authorStatsKey(book.getAuthor()), "category:" + book.getCategory(), -1);
-            }
-        }
-
         if (book.getTitle() != null && !book.getTitle().isBlank()) {
             String[] words = normalize(book.getTitle()).split("\\s+");
             for (String word : words) {
-                stringRedisTemplate.opsForSet().remove("idx:title:" + word, id);
+                stringRedisTemplate.opsForSet().remove(titleBooksKey(word), id);
             }
+        }
+
+        if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
+            stringRedisTemplate.opsForSet().remove(authorBooksKey(book.getAuthor()), id);
+            stringRedisTemplate.opsForHash().increment(authorStatsKey(book.getAuthor()), "total", -1);
         }
     }
 
@@ -93,16 +98,17 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
     }
 
     @Override
-    public Page<BookCache> searchBooks(String title, String author, String Content, Pageable pageable) {
+    public Page<BookCache> searchBooks(String title, String author, String content, Pageable pageable) {
         List<String> indexKeys = new ArrayList<>();
 
         if (title != null && !title.isBlank()) {
             for (String word : normalize(title).split("\\s+")) {
-                indexKeys.add("idx:title:" + word);
+                if (!word.isBlank()) indexKeys.add(titleBooksKey(word));
             }
         }
+
         if (author != null && !author.isBlank()) {
-            indexKeys.add("idx:author:" + normalize(author).replace(" ", "_"));
+            indexKeys.add(authorBooksKey(author));
         }
 
         if (indexKeys.isEmpty()) return findAll(pageable);
@@ -111,19 +117,22 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         if (indexKeys.size() == 1) {
             resultIds = stringRedisTemplate.opsForSet().members(indexKeys.getFirst());
         } else {
-            resultIds = stringRedisTemplate.opsForSet().intersect(indexKeys.getFirst(), indexKeys.subList(1, indexKeys.size()));
+            String firstKey = indexKeys.getFirst();
+            List<String> otherKeys = indexKeys.subList(1, indexKeys.size());
+            resultIds = stringRedisTemplate.opsForSet().intersect(firstKey, otherKeys);
         }
 
         if (resultIds == null || resultIds.isEmpty()) return Page.empty(pageable);
 
         List<String> idList = new ArrayList<>(resultIds);
+        Collections.sort(idList);
+
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), idList.size());
 
         if (start >= idList.size()) return Page.empty(pageable);
 
         List<String> pageIds = idList.subList(start, end);
-
         return buildPageFromIds(pageIds, pageable, idList.size());
     }
 

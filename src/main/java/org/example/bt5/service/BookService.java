@@ -30,29 +30,8 @@ public class BookService<T> {
         return repo;
     }
 
-    public void saveBook(Object bookBody, String dbType) {
-        Object concreteBook;
-
-        String type = dbType.toLowerCase();
-
-        try {
-            if (type.contains("mysql") || type.contains("sql")) {
-                concreteBook = objectMapper.convertValue(bookBody, BookSQL.class);
-            } else if (type.contains("mongo")) {
-                concreteBook = objectMapper.convertValue(bookBody, BookDocument.class);
-            } else if (type.contains("redis") || type.contains("cache")) {
-                concreteBook = objectMapper.convertValue(bookBody, BookCache.class);
-            } else if (type.contains("influx")) {
-                concreteBook = objectMapper.convertValue(bookBody, BookMetric.class);
-            } else {
-                throw new IllegalArgumentException("Database type không được hỗ trợ: " + dbType);
-            }
-
-            getRepo(dbType).saveBook(concreteBook);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi chuyển đổi dữ liệu sách: " + e.getMessage());
-        }
+    public void saveBook(T book, String dbType) {
+        getRepo(dbType).saveBook(book);
     }
 
     public Page<?> searchBooks(String dbType, String title, String author, String content, Pageable pageable) {

@@ -208,30 +208,42 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
         String flux = String.format(
                 "from(bucket: \"%s\") " +
                         "|> range(start: 0) " +
-                        "|> filter(fn: (r) => r._measurement == \"%s\") " +
+                        "|> filter(fn: (r) => r._measurement == \"Book\") " +
                         "|> filter(fn: (r) => r.author == \"%s\") " +
-                        "|> filter(fn: (r) => r._field == \"id\") " +
-                        "|> filter(fn: (r) => r._field == \"title\") " +
-                        "|> group() " +
-                        "|> count()",
-                bucket, MEASUREMENT, author
+                        "|> filter(fn: (r) => r._field == \"id\" or r._field == \"category\") " +
+                        "|> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") " +
+                        "|> group(columns: [\"author\", \"category\"]) " +
+                        "|> count(column: \"id\")",
+                bucket, author
         );
 
         List<FluxTable> tables = influxDBClient.getQueryApi().query(flux);
 
-        long totalBooks = 0;
-        if (!tables.isEmpty() && !tables.getFirst().getRecords().isEmpty()) {
-            totalBooks = Long.parseLong(Objects.requireNonNull(tables.getFirst().getRecords().getFirst().getValueByKey("_value")).toString());
+        if (tables.isEmpty()) {
+            return Map.of("message", "Không tìm thấy dữ liệu cho tác giả: " + author);
         }
 
-        if (totalBooks == 0) {
-            return Map.of("message", "Không tìm thấy dữ liệu tác giả: " + author);
+        long totalBooksAllCategories = 0;
+        Map<String, Long> categoryStats = new HashMap<>();
+
+        for (FluxTable table : tables) {
+            for (FluxRecord record : table.getRecords()) {
+                String cat = record.getValueByKey("category") != null
+                        ? record.getValueByKey("category").toString()
+                        : "Unknown";
+
+                long count = Long.parseLong(record.getValueByKey("_value").toString());
+
+                categoryStats.put(cat, count);
+                totalBooksAllCategories += count;
+            }
         }
 
         return Map.of(
                 "author", author,
-                "totalBooks", totalBooks,
-                "lastUpdated", Instant.now()
+                "totalBooks", totalBooksAllCategories,
+                "detailsByCategory", categoryStats,
+                "status", "success"
         );
     }
 
