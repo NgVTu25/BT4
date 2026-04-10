@@ -5,9 +5,9 @@ import java.util.List;
 public interface CrudRepository<T, ID> {
     void saveBook(T book);
 
-    void updateBook(ID id, T book);
+    Boolean updateBook(ID id, T book);
 
-    void deleteBooks(List<ID> ids);
+    Boolean deleteBooks(List<ID> ids);
 
     void saveAll(List<T> books);
 }

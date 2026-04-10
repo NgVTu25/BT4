@@ -43,7 +43,7 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
     }
 
     @Override
-    public void updateBook(String id, BookDocument book) {
+    public Boolean updateBook(String id, BookDocument book) {
         BookDocument Ebook = mongoDBRepository.findById(id).orElse(null);
         if (Ebook != null) {
             Ebook.setTitle(book.getTitle() != null ? book.getTitle() : Ebook.getTitle());
@@ -52,14 +52,20 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
             Ebook.setCategory(book.getCategory() != null ? book.getCategory() : Ebook.getCategory());
             Ebook.setViewCount(book.getViewCount() != null ? book.getViewCount() : Ebook.getViewCount());
             mongoDBRepository.save(Ebook);
+            return true;
         }
+        return false;
     }
 
     @Override
-    public void deleteBooks(List<String> ids) {
+    public Boolean deleteBooks(List<String> ids) {
         for (String id : ids) {
+            if (!mongoDBRepository.existsById(id)) {
+                return false;
+            }
             mongoDBRepository.deleteById(id);
         }
+        return false;
     }
 
     @Override

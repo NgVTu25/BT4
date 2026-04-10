@@ -142,13 +142,13 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
     }
 
     @Override
-    public void updateBook(String id, BookCache book) {
+    public Boolean updateBook(String id, BookCache book) {
         String key = bookKey(id);
         BookCache oldBook = redisTemplate.opsForValue().get(key);
 
         if (oldBook == null) {
             System.out.println("Không tìm thấy sách với ID: " + id);
-            return;
+            return false;
         }
 
         book.setId(id);
@@ -157,11 +157,12 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         removeIndexes(oldBook);
         redisTemplate.opsForValue().set(key, book);
         addIndexes(stringRedisTemplate, book);
+        return true;
     }
 
     @Override
-    public void deleteBooks(List<String> ids) {
-        if (ids == null || ids.isEmpty()) return;
+    public Boolean deleteBooks(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return false;
 
         for (String id : ids) {
             String key = bookKey(id);
@@ -174,6 +175,7 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
                 removeIndexes(book);
             }
         }
+        return true;
     }
 
     @Override

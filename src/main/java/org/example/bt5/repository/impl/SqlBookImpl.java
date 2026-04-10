@@ -93,7 +93,7 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
     }
 
     @Override
-    public void updateBook(Long id, BookSQL book) {
+    public Boolean updateBook(Long id, BookSQL book) {
         BookSQL upBook = sqlRepository.findById(id).orElse(null);
 
         if (upBook != null) {
@@ -104,16 +104,21 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
             upBook.setViewCount(book.getViewCount());
 
             sqlRepository.save(upBook);
+            return true;
         } else {
             System.err.println("[LỖI] Không tìm thấy sách với ID: " + id);
         }
+        return false;
     }
 
     @Override
-    public void deleteBooks(List<Long> ids) {
+    public Boolean deleteBooks(List<Long> ids) {
         for (Long id : ids) {
+            if (!sqlRepository.existsById(id))
+                return false;
             sqlRepository.deleteById(id);
         }
+        return true;
     }
 
     @Override

@@ -16,7 +16,7 @@ import java.util.Map;
 @RequestMapping("/books/api")
 public class BookController {
 
-    private final BookService<Object> bookService;
+    private final BookService bookService;
 
     @GetMapping("/{db}")
     public ResponseEntity<Page<?>> getBooks(@PathVariable String db, Pageable pageable) {
@@ -46,7 +46,12 @@ public class BookController {
             @PathVariable String id,
             @RequestBody Object book
     ) {
-        bookService.updateBook(db.trim().toLowerCase(), id, book);
+        boolean status = bookService.updateBook(db.trim().toLowerCase(), id, book);
+
+        if (!status) {
+            return ResponseEntity.badRequest().body("Update failed: Book not found");
+        }
+
         return ResponseEntity.ok("Update success");
     }
 
@@ -55,7 +60,11 @@ public class BookController {
             @PathVariable String db,
             @RequestBody List<String> ids
     ) {
-        bookService.deleteBooks(db, ids);
+        boolean status = bookService.deleteBooks(db, ids);
+        if (!status) {
+            return ResponseEntity.badRequest().body("Delete failed: No valid IDs provided");
+        }
+
         return ResponseEntity.ok("Delete success");
     }
 

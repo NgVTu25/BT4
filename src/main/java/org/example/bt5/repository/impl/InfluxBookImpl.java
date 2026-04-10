@@ -20,12 +20,13 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository("influx")
 @RequiredArgsConstructor
 public class InfluxBookImpl implements BookRepository<BookMetric, String> {
+    private static final String MEASUREMENT = "Book";
     public final InfluxDBClient influxDBClient;
-
     @Value("${influx.url}")
     private String url;
     @Value("${influx.token}")
@@ -34,8 +35,6 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
     private String org;
     @Value("${influx.bucket}")
     private String bucket;
-
-    private static final String MEASUREMENT = "Book";
 
     private List<BookMetric> mapFluxToBooks(String fluxQuery) {
         List<BookMetric> books = new ArrayList<>();
@@ -157,7 +156,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
 
 
     @Override
-    public void updateBook(String id, BookMetric book) {
+    public Boolean updateBook(String id, BookMetric book) {
 
         String flux = String.format(
                 "from(bucket: \"%s\") " +
@@ -173,26 +172,37 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
         boolean exists = tables.stream().anyMatch(t -> !t.getRecords().isEmpty());
         if (!exists) {
             System.out.println("Update không thành công: Không tìm thấy ID");
-            return;
+            return false;
         }
 
         deleteBooks(List.of(id));
         book.setId(id);
         saveBook(book);
         System.out.println("Cập nhật thành công bản ghi InfluxDB");
+        return true;
     }
 
-    @Override
-    public void deleteBooks(List<String> ids) {
-        DeleteApi deleteApi = influxDBClient.getDeleteApi();
-        if (ids == null || ids.isEmpty()) return;
+    public Boolean deleteBooks(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return false;
 
         OffsetDateTime start = OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         OffsetDateTime stop = OffsetDateTime.now();
 
-        for (String id : ids) {
-            String predicate = "_measurement=\"" + MEASUREMENT + "\" AND id=\"" + id + "\"";
+        try {
+            DeleteApi deleteApi = influxDBClient.getDeleteApi();
+
+            String idsCondition = ids.stream()
+                    .map(id -> "id=\"" + id + "\"")
+                    .collect(Collectors.joining(" OR "));
+
+            String predicate = String.format("_measurement=\"%s\" AND (%s)", MEASUREMENT, idsCondition);
+
             deleteApi.delete(start, stop, predicate, bucket, org);
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

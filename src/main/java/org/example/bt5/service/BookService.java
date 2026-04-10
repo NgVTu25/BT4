@@ -18,9 +18,27 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class BookService<T> {
+public class BookService {
     private final Map<String, BookRepository> bookRepositories;
     private final ObjectMapper objectMapper;
+
+    private static final Map<String, Class<?>> MODEL_MAPPING = Map.of(
+            "mysql", BookSQL.class,
+            "sql", BookSQL.class,
+            "mongo", BookDocument.class,
+            "mongodb", BookDocument.class,
+            "redis", BookCache.class,
+            "cache", BookCache.class,
+            "influx", BookMetric.class
+    );
+
+    private Class<?> getModelClass(String dbType) {
+        return MODEL_MAPPING.entrySet().stream()
+                .filter(entry -> dbType.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Model cho DB: " + dbType));
+    }
 
     private BookRepository getRepo(String dbType) {
 
@@ -32,28 +50,8 @@ public class BookService<T> {
     }
 
     public void saveBook(Object book, String dbType) {
-        String type = (dbType == null) ? "" : dbType.trim().toLowerCase();
-
-        try {
-            Object bookDb;
-
-            if (type.contains("mysql") || type.contains("sql")) {
-                bookDb = objectMapper.convertValue(book, BookSQL.class);
-            } else if (type.contains("mongo")) {
-                bookDb = objectMapper.convertValue(book, BookDocument.class);
-            } else if (type.contains("redis") || type.contains("cache")) {
-                bookDb = objectMapper.convertValue(book, BookCache.class);
-            } else if (type.contains("influx")) {
-                bookDb = objectMapper.convertValue(book, BookMetric.class);
-            } else {
-                throw new IllegalArgumentException("Database type không được hỗ trợ: " + dbType);
-            }
-
-            getRepo(type).saveBook(bookDb);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi chuyển đổi dữ liệu sách: " + e.getMessage());
-        }
+        Object bookObj = convertToMappedObject(book, dbType);
+        getRepo(dbType.toLowerCase()).saveBook(bookObj);
     }
 
     public Page<?> searchBooks(String dbType, String title, String author, String content, Pageable pageable) {
@@ -64,36 +62,21 @@ public class BookService<T> {
         return getRepo(dbType.toLowerCase()).statisticByAuthor(author);
     }
 
-    public void updateBook(String dbType, String id, Object book) {
-        try {
-            Object bookDb;
-
-            if (dbType.contains("mysql") || dbType.contains("sql")) {
-                bookDb = objectMapper.convertValue(book, BookSQL.class);
-                getRepo(dbType.toLowerCase()).updateBook(Long.parseLong(id), bookDb);
-            } else if (dbType.contains("mongodb")) {
-                bookDb = objectMapper.convertValue(book, BookDocument.class);
-                getRepo(dbType.toLowerCase()).updateBook(id, bookDb);
-            } else if (dbType.contains("redis") || dbType.contains("cache")) {
-                bookDb = objectMapper.convertValue(book, BookCache.class);
-                getRepo(dbType.toLowerCase()).updateBook(id, bookDb);
-            } else if (dbType.contains("influx")) {
-                bookDb = objectMapper.convertValue(book, BookMetric.class);
-                getRepo(dbType.toLowerCase()).updateBook(id, bookDb);
-            } else {
-                throw new IllegalArgumentException("Database type không được hỗ trợ: " + dbType);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Lỗi chuyển đổi dữ liệu sách: " + e.getMessage());
+    public boolean updateBook(String dbType, String id, Object book) {
+        Object bookObj = convertToMappedObject(book, dbType);
+        if (dbType.contains("mysql") || dbType.contains("sql")) {
+            return getRepo(dbType.toLowerCase()).updateBook(Long.parseLong(id), bookObj);
+        } else {
+            return getRepo(dbType.toLowerCase()).updateBook(id, bookObj);
         }
     }
 
-    public void deleteBooks(String dbType, List<String> ids) {
+    public boolean deleteBooks(String dbType, List<String> ids) {
         if (dbType.contains("mysql") || dbType.contains("sql")) {
             List<Long> BookIds = ids.stream().map(Long::parseLong).collect(Collectors.toList());
-            getRepo(dbType.toLowerCase()).deleteBooks(BookIds);
+            return getRepo(dbType.toLowerCase()).deleteBooks(BookIds);
         } else {
-            getRepo(dbType.toLowerCase()).deleteBooks(ids);
+            return getRepo(dbType.toLowerCase()).deleteBooks(ids);
         }
     }
 
@@ -105,4 +88,19 @@ public class BookService<T> {
         System.out.println(db.toLowerCase());
         return getRepo(db.toLowerCase()).findAll(safePageable);
     }
+
+    private Object convertToMappedObject(Object rawBook, String dbType) {
+        if (rawBook == null) return null;
+
+        String type = dbType.toLowerCase().trim();
+
+        Class<?> targetClass = getModelClass(type);
+
+        try {
+            return objectMapper.convertValue(rawBook, targetClass);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi convert sang " + targetClass.getSimpleName() + ": " + e.getMessage());
+        }
+    }
+
 }

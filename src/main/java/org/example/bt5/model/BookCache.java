@@ -18,6 +18,8 @@ import java.time.Instant;
 @AllArgsConstructor
 @RedisHash("book")
 public class BookCache {
+    public Long viewCount;
+    public Long downloadCount;
     @Id
     private String id;
     @Indexed
@@ -26,13 +28,7 @@ public class BookCache {
     private String category;
     @Indexed
     private String title;
-
     private String content;
-
     private Instant createDate = Instant.now();
-
-    public Long viewCount;
-
-    public Long downloadCount;
 
 }

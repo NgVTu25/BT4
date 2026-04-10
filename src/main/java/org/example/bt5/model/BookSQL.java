@@ -19,6 +19,8 @@ import java.time.Instant;
 })
 
 public class BookSQL {
+    public Long viewCount;
+    public Long downloadCount;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,7 +29,5 @@ public class BookSQL {
     private String title;
     private String content;
     private Instant createDate = Instant.now();
-    public Long viewCount;
-    public Long downloadCount;
 
 }

@@ -20,21 +20,14 @@ import java.util.UUID;
 @Document(collection = "books")
 @CompoundIndex(name = "auth_cat_idx", def = "{'author': 1, 'category': -1}")
 public class BookDocument {
+    public Long viewCount;
+    public Long downloadCount;
     @Id
     private String id = UUID.randomUUID().toString();
-
     private String author;
-
     private String category;
-
     private String title;
-
     private String content;
-
     private Instant createDate = Instant.now();
-
-    public Long viewCount;
-
-    public Long downloadCount;
 
 }

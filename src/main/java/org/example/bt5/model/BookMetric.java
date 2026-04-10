@@ -19,6 +19,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Measurement(name = "Book")
 public class BookMetric {
+    @Column
+    public Long viewCount;
+    @Column
+    public Long downloadCount;
     @Id
     @Column(tag = true)
     private String id;
@@ -32,9 +36,5 @@ public class BookMetric {
     private String content;
     @Column(timestamp = true)
     private Instant createDate = Instant.now();
-    @Column
-    public Long viewCount;
-    @Column
-    public Long downloadCount;
 
 }

@@ -30,7 +30,7 @@ public class BookServiceTest {
     private BookRepository bookRepositoryMock;
 
     @InjectMocks
-    private BookService<Object> bookService;
+    private BookService bookService;
 
     @Test
     void saveBook() {
