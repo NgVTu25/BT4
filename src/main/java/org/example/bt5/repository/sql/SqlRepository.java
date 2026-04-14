@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Map;
 
 public interface SqlRepository extends JpaRepository<BookSQL, Long>, JpaSpecificationExecutor<BookSQL> {
@@ -44,11 +45,12 @@ public interface SqlRepository extends JpaRepository<BookSQL, Long>, JpaSpecific
 //            """)
 
     @Query(value = "SELECT " +
-            "author, " +
-            "GROUP_CONCAT(category SEPARATOR ', ') as categories, " +
-            "SUM(book_count) as total_books " +
+            "category, " +
+            "SUM(book_count) as total_books, " +
+            "SUM(SUM(book_count)) OVER() as total_all " +
             "FROM view_author_stats " +
             "WHERE author = :author " +
-            "GROUP BY author", nativeQuery = true)
-    Map<String, Object> statisticByAuthor(@Param("author") String author);
+            "GROUP BY category",
+            nativeQuery = true)
+    List<Map<String, Object>> statisticByAuthor(@Param("author") String author);
 }

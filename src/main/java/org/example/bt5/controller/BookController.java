@@ -60,12 +60,12 @@ public class BookController {
         ));
     }
 
-    @DeleteMapping("/{db}/{id}")
+    @DeleteMapping("/{db}")
     public ResponseEntity<?> deleteBook(
             @PathVariable String db,
-            @PathVariable List<String> id
+            @RequestBody List<String> ids
     ) {
-        boolean status = bookService.deleteBooks(db, id);
+        boolean status = bookService.deleteBooks(db, ids);
 
         if (!status) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -75,7 +75,7 @@ public class BookController {
 
         return ResponseEntity.ok(Map.of(
                 "message", "Delete success",
-                "id", id
+                "id", ids
         ));
     }
 

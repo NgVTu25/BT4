@@ -124,12 +124,30 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
     @Override
     public Map<String, Object> statisticByAuthor(String author) {
 
-        Map<String, Object> rawStats = sqlRepository.statisticByAuthor(author);
+        List<Map<String, Object>> rawStats = sqlRepository.statisticByAuthor(author);
 
         if (rawStats == null || rawStats.isEmpty()) {
             return Map.of("message", "Không có dữ liệu cho tác giả: " + author);
         }
-        return new HashMap<>(rawStats);
+
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Long> categoryStats = new HashMap<>();
+
+        long total = 0;
+
+        for (Map<String, Object> row : rawStats) {
+            String category = (String) row.get("category");
+            Long count = ((Number) row.get("total_books")).longValue();
+
+            categoryStats.put(category, count);
+            total += count;
+        }
+
+        result.put("author", author);
+        result.put("total_books", total);
+        result.put("categories", categoryStats);
+
+        return result;
     }
 
     @Override

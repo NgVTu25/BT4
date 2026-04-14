@@ -16,10 +16,21 @@ public interface MongoDBRepository extends MongoRepository<BookDocument, String>
 
     @Aggregation(pipeline = {
             "{ '$match': { 'author': ?0 } }",
+
             "{ '$group': { " +
-                    "    '_id': '$author', " +
-                    "    'totalBooks': { '$sum': 1 }, " +
-                    "    'categories': { '$addToSet': '$category' } " +
+                    "    '_id': { 'author': '$author', 'category': '$category' }, " +
+                    "    'count': { '$sum': 1 } " +
+                    "} }",
+
+            "{ '$group': { " +
+                    "    '_id': '$_id.author', " +
+                    "    'totalBooks': { '$sum': '$count' }, " +
+                    "    'categories': { " +
+                    "        '$push': { " +
+                    "            'category': '$_id.category', " +
+                    "            'count': '$count' " +
+                    "        } " +
+                    "    } " +
                     "} }"
     })
     List<Map<String, Object>> statisticByAuthor(String author);

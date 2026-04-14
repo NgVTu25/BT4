@@ -61,7 +61,7 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
             }
             mongoDBRepository.deleteById(id);
         }
-        return false;
+        return true;
     }
 
     @Override
