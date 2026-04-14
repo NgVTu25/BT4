@@ -3,7 +3,6 @@ package org.example.bt5;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.bt5.model.BookCache;
 import org.example.bt5.model.BookDocument;
-import org.example.bt5.model.BookMetric;
 import org.example.bt5.model.BookSQL;
 import org.example.bt5.repository.BookRepository;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,7 @@ public class DatabasePerformanceTest {
     private ObjectMapper objectMapper;
 
     public void generateAndInsert(String dbType) {
-        int totalRecords = 500_000;
+        int totalRecords = 1_000_000;
         int batchSize = 2000;
 
         String[] categories = {"Hành động", "Tình cảm", "Khoa học", "Lịch sử", "Kinh dị", "Trinh thám", "Kỹ năng", "Kinh tế"};
@@ -118,9 +117,11 @@ public class DatabasePerformanceTest {
             return objectMapper.convertValue(bookBody, BookDocument.class);
         } else if (type.contains("redis")) {
             return objectMapper.convertValue(bookBody, BookCache.class);
-        } else if (type.contains("influx")) {
-            return objectMapper.convertValue(bookBody, BookMetric.class);
-        } else {
+        } else
+//        if (type.contains("influx")) {
+//            return objectMapper.convertValue(bookBody, BookMetric.class);
+//        } else {
+        {
             throw new IllegalArgumentException("Database không hợp lệ: " + dbType);
         }
     }

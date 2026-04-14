@@ -41,7 +41,7 @@ public class BookController {
     }
 
     @PutMapping("/{db}/{id}")
-    public ResponseEntity<String> updateBook(
+    public ResponseEntity<?> updateBook(
             @PathVariable String db,
             @PathVariable String id,
             @RequestBody Object book
@@ -49,23 +49,34 @@ public class BookController {
         boolean status = bookService.updateBook(db.trim().toLowerCase(), id, book);
 
         if (!status) {
-            return ResponseEntity.badRequest().body("Update failed: Book not found");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", "Update failed: Book not found"
+            ));
         }
 
-        return ResponseEntity.ok("Update success");
+        return ResponseEntity.ok(Map.of(
+                "message", "Update success",
+                "id", id
+        ));
     }
 
-    @DeleteMapping("/{db}")
-    public ResponseEntity<String> deleteBooks(
+    @DeleteMapping("/{db}/{id}")
+    public ResponseEntity<?> deleteBook(
             @PathVariable String db,
-            @RequestBody List<String> ids
+            @PathVariable List<String> id
     ) {
-        boolean status = bookService.deleteBooks(db, ids);
+        boolean status = bookService.deleteBooks(db, id);
+
         if (!status) {
-            return ResponseEntity.badRequest().body("Delete failed: No valid IDs provided");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", "Delete failed"
+            ));
         }
 
-        return ResponseEntity.ok("Delete success");
+        return ResponseEntity.ok(Map.of(
+                "message", "Delete success",
+                "id", id
+        ));
     }
 
     @GetMapping("/{db}/statistic")

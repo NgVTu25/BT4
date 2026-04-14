@@ -52,8 +52,16 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         String id = book.getId();
 
         if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
+            String statsKey = authorStatsKey(book.getAuthor());
+
             ops.opsForSet().add(authorBooksKey(book.getAuthor()), id);
-            ops.opsForHash().increment(authorStatsKey(book.getAuthor()), "total", 1);
+
+            ops.opsForHash().increment(statsKey, "total", 1);
+
+            if (book.getCategory() != null && !book.getCategory().isBlank()) {
+                String categoryKey = "category:" + normalize(book.getCategory());
+                ops.opsForHash().increment(statsKey, categoryKey, 1);
+            }
         }
 
         if (book.getTitle() != null && !book.getTitle().isBlank()) {
@@ -78,8 +86,18 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         }
 
         if (book.getAuthor() != null && !book.getAuthor().isBlank()) {
+            String statsKey = authorStatsKey(book.getAuthor());
+
             stringRedisTemplate.opsForSet().remove(authorBooksKey(book.getAuthor()), id);
-            stringRedisTemplate.opsForHash().increment(authorStatsKey(book.getAuthor()), "total", -1);
+
+            // total
+            stringRedisTemplate.opsForHash().increment(statsKey, "total", -1);
+
+            // ✅ NEW: category stats
+            if (book.getCategory() != null && !book.getCategory().isBlank()) {
+                String categoryKey = "category:" + normalize(book.getCategory());
+                stringRedisTemplate.opsForHash().increment(statsKey, categoryKey, -1);
+            }
         }
     }
 
@@ -153,6 +171,7 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
 
         book.setId(id);
         book.setContent(null);
+        book.setCreateDate(oldBook.getCreateDate());
 
         removeIndexes(oldBook);
         redisTemplate.opsForValue().set(key, book);
@@ -190,6 +209,7 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         Map<String, Long> categoryStats = new HashMap<>();
 
         hashData.forEach((k, v) -> {
+            System.out.println("KEY = " + k + " | VALUE = " + v);
             String key = k.toString();
             Long value = Long.parseLong(v.toString());
 
