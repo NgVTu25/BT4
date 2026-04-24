@@ -267,6 +267,13 @@ public class RedisBookImpl implements BookRepository<BookCache, String> {
         });
     }
 
+    @Override
+    public Object findById(String s) {
+        String key = BOOKS_ALL_KEY + s;
+
+        return redisTemplate.opsForValue().get(key);
+    }
+
     private Page<BookCache> buildPageFromIds(List<String> ids, Pageable pageable, long total) {
         if (ids == null || ids.isEmpty()) {
             return new PageImpl<>(new ArrayList<>(), pageable, total);

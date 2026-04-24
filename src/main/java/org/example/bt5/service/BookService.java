@@ -48,6 +48,13 @@ public class BookService {
         return repo;
     }
 
+    public Object searchBookById(String dbType, String id) {
+        if (dbType.contains("mysql") || dbType.contains("sql")) {
+            return getRepo(dbType.toLowerCase()).findById(Long.parseLong(id));
+        }
+        return getRepo(dbType.toLowerCase()).findById(id);
+    }
+
     public void saveBook(Object book, String dbType) {
         Object bookObj = convertToMappedObject(book, dbType);
         getRepo(dbType.toLowerCase()).saveBook(bookObj);

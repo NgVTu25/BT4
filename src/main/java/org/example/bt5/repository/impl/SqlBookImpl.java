@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +20,7 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
 
     @Override
     public void saveBook(BookSQL book) {
-        book.setCreateDate(Instant.now());
         sqlRepository.save(book);
-        System.out.println(book.getId());
     }
 
     @Override
@@ -63,19 +60,14 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
     public Boolean updateBook(Long id, BookSQL book) {
         BookSQL upBook = sqlRepository.findById(id).orElseThrow(() -> new RuntimeException("Không tìm thấy sách với ID: " + id));
 
-        if (upBook != null) {
-            upBook.setTitle(book.getTitle() != null ? book.getTitle() : upBook.getTitle());
-            upBook.setAuthor(book.getAuthor() != null ? book.getAuthor() : upBook.getAuthor());
-            upBook.setContent(book.getContent() != null ? book.getContent() : upBook.getContent());
-            upBook.setCategory(book.getCategory() != null ? book.getCategory() : upBook.getCategory());
-            upBook.setViewCount(book.getViewCount() != null ? book.getViewCount() : upBook.getViewCount());
+        upBook.setTitle(book.getTitle() != null ? book.getTitle() : upBook.getTitle());
+        upBook.setAuthor(book.getAuthor() != null ? book.getAuthor() : upBook.getAuthor());
+        upBook.setContent(book.getContent() != null ? book.getContent() : upBook.getContent());
+        upBook.setCategory(book.getCategory() != null ? book.getCategory() : upBook.getCategory());
+        upBook.setViewCount(book.getViewCount() != null ? book.getViewCount() : upBook.getViewCount());
 
-            sqlRepository.save(upBook);
-            return true;
-        } else {
-            System.err.println("[LỖI] Không tìm thấy sách với ID: " + id);
-        }
-        return false;
+        sqlRepository.save(upBook);
+        return true;
     }
 
     @Override
@@ -127,6 +119,11 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
     @Override
     public void saveAll(List<BookSQL> books) {
         sqlRepository.saveAll(books);
+    }
+
+    @Override
+    public Object findById(Long aLong) {
+        return sqlRepository.findById(aLong).orElseThrow(() -> new RuntimeException("Không tìm thấy sách với ID: " + aLong));
     }
 
 }

@@ -10,4 +10,6 @@ public interface CrudRepository<T, ID> {
     Boolean deleteBooks(List<ID> ids);
 
     void saveAll(List<T> books);
+
+    Object findById(ID id);
 }

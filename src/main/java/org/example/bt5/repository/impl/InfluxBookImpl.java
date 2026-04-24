@@ -2,6 +2,7 @@ package org.example.bt5.repository.impl;
 
 import com.influxdb.client.DeleteApi;
 import com.influxdb.client.InfluxDBClient;
+import com.influxdb.client.QueryApi;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import com.influxdb.query.FluxRecord;
@@ -131,6 +132,23 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
         System.out.println("-> Batch save " + books.size() + " books successful.");
     }
 
+    @Override
+    public Object findById(String s) {
+        String flux = String.format(
+                "from(bucket: \"%s\") " +
+                        "|> range(start: 0) " +
+                        "|> filter(fn: (r) => r[\"_measurement\"] == \"book_metrics\") " +
+                        "|> filter(fn: (r) => r.id == \"%s\") " +
+                        "|> last()",
+                bucket, s
+        );
+
+        QueryApi queryApi = influxDBClient.getQueryApi();
+        List<BookMetric> results = queryApi.query(flux, org, BookMetric.class);
+
+        return results.isEmpty() ? null : results.getFirst();
+    }
+
     public Point writeData(BookMetric book) {
         return Point.measurement(MEASUREMENT)
                 .addTag("id", String.valueOf(book.getId()))
@@ -218,7 +236,7 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
         for (FluxTable table : tables) {
             for (FluxRecord record : table.getRecords()) {
                 String cat = record.getValueByKey("category") != null
-                        ? record.getValueByKey("category").toString()
+                        ? Objects.requireNonNull(record.getValueByKey("category")).toString()
                         : "Unknown";
 
                 long count = Long.parseLong(record.getValueByKey("_value").toString());

@@ -53,6 +53,4 @@ public interface SqlRepository extends JpaRepository<BookSQL, Long>, JpaSpecific
             "GROUP BY category",
             nativeQuery = true)
     List<Map<String, Object>> statisticByAuthor(@Param("author") String author);
-
-    void update(Long id, String title, String author, String content, String category, Long viewCount);
 }

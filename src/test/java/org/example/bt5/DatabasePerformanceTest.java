@@ -111,17 +111,17 @@ public class DatabasePerformanceTest {
     private Object convertToCorrectType(Object bookBody, String dbType) {
         String type = dbType.toLowerCase();
 
-        if (type.contains("mysql") || type.contains("sql")) {
-            return objectMapper.convertValue(bookBody, BookSQL.class);
-        } else if (type.contains("mongo")) {
+//        if (type.contains("mysql") || type.contains("sql")) {
+//            return objectMapper.convertValue(bookBody, BookSQL.class);
+//        } else
+	    if (type.contains("mongo")) {
             return objectMapper.convertValue(bookBody, BookDocument.class);
         } else if (type.contains("redis")) {
             return objectMapper.convertValue(bookBody, BookCache.class);
-        } else
-//        if (type.contains("influx")) {
+//        }
+//            else if (type.contains("influx")) {
 //            return objectMapper.convertValue(bookBody, BookMetric.class);
-//        } else {
-        {
+	    } else {
             throw new IllegalArgumentException("Database không hợp lệ: " + dbType);
         }
     }

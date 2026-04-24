@@ -87,4 +87,9 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
     public void saveAll(List<BookDocument> books) {
         mongoDBRepository.saveAll(books);
     }
+
+    @Override
+    public Object findById(String s) {
+        return mongoDBRepository.findById(s).orElse(null);
+    }
 }
