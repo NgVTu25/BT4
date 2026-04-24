@@ -26,6 +26,15 @@ public class BookController {
     @PostMapping("/{db}")
     public ResponseEntity<Object> createBook(@PathVariable String db, @RequestBody Object book) {
         bookService.saveBook(book, db);
+        return ResponseEntity.ok(bookService.saveBook(book, db));
+    }
+
+    @GetMapping("/{db}/{id}")
+    public ResponseEntity<Object> getBookById(@PathVariable String db, @PathVariable String id) {
+        Object book = bookService.searchBookById(db, id);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(book);
     }
 

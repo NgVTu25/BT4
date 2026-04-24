@@ -19,8 +19,9 @@ public class SqlBookImpl implements BookRepository<BookSQL, Long> {
     private final SqlRepository sqlRepository;
 
     @Override
-    public void saveBook(BookSQL book) {
+    public Object saveBook(BookSQL book) {
         sqlRepository.save(book);
+        return book;
     }
 
     @Override

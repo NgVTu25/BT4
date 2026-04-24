@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -20,10 +19,10 @@ public class MongoBookImpl implements BookRepository<BookDocument, String> {
     private final MongoDBRepository mongoDBRepository;
 
     @Override
-    public void saveBook(BookDocument book) {
-        book.setCreateDate(Instant.now());
+    public Object saveBook(BookDocument book) {
         mongoDBRepository.save(book);
         System.out.println("Lưu thành công vào Mongo với ID: " + book.getId());
+        return book;
     }
 
     @Override

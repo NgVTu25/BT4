@@ -76,15 +76,15 @@ public class InfluxBookImpl implements BookRepository<BookMetric, String> {
     }
 
     @Override
-    public void saveBook(BookMetric book) {
+    public Object saveBook(BookMetric book) {
         if (book.getId() == null) {
             String ID = UUID.randomUUID().toString();
-            book.setCreateDate(Instant.now());
             book.setId(ID);
         }
 
         influxDBClient.getWriteApiBlocking().writePoint(bucket, org, writeData(book));
         System.out.println("-> Save book with ID: " + book.getId());
+        return book;
     }
 
     @Override

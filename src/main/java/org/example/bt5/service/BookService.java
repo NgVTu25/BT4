@@ -55,9 +55,10 @@ public class BookService {
         return getRepo(dbType.toLowerCase()).findById(id);
     }
 
-    public void saveBook(Object book, String dbType) {
+    public Object saveBook(Object book, String dbType) {
         Object bookObj = convertToMappedObject(book, dbType);
         getRepo(dbType.toLowerCase()).saveBook(bookObj);
+        return bookObj;
     }
 
     public Page<?> searchBooks(String dbType, String title, String author, String content, Pageable pageable) {

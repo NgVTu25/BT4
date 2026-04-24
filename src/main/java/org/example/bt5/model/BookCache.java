@@ -1,5 +1,6 @@
 package org.example.bt5.model;
 
+import com.influxdb.annotations.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -7,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
 
@@ -18,17 +18,29 @@ import java.time.Instant;
 @AllArgsConstructor
 @RedisHash("book")
 public class BookCache {
-    public Long viewCount;
-    public Long downloadCount;
+    @Column(tag = true, name = "id")
     @Id
     private String id;
-    @Indexed
+
+    @Column(tag = true)
     private String author;
-    @Indexed
+
+    @Column(tag = true)
     private String category;
-    @Indexed
+
+    @Column
     private String title;
+
+    @Column
     private String content;
+
+    @Column
+    public Long viewCount;
+
+    @Column
+    public Long downloadCount;
+
+    @jakarta.persistence.Column(name = "create_date")
     private Instant createDate = Instant.now();
 
 }
